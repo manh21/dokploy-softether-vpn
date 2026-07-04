@@ -13,7 +13,16 @@ Deploy [SoftEtherVPN](https://github.com/SoftEtherVPN/SoftetherVPN-docker) as a 
 - VPN server running inside Dokploy (Alpine-based, ~15 MB image)
 - VPN clients can reach your Dokploy services via `http://10.99.0.1:8080`
 - Docker containers in other projects can reach VPN clients behind the SecureNAT
+- [FreeRADIUS](freeradius/README.md) — centralised AAA for VPN users (companion guide)
+- [GenieACS TR-069 ACS](genieacs/README.md) — device management with VPN connectivity (companion guide)
 - SoftEther native protocol, OpenVPN, L2TP/IPsec — all supported
+
+## Companion Guides
+
+| Guide | Description |
+|-------|-------------|
+| [FreeRADIUS + SoftEtherVPN](freeradius/README.md) | Add centralised RADIUS authentication to the VPN server |
+| [GenieACS TR-069 ACS](genieacs/README.md) | Deploy an Auto Configuration Server for CPE management |
 
 ## Table of Contents
 

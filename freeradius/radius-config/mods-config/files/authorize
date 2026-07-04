@@ -1,0 +1,29 @@
+# FreeRADIUS Users File
+# Defines users and their authentication credentials.
+# Mount at: /etc/raddb/mods-config/files/authorize
+#
+# Add your VPN users below. Each user gets a username, cleartext password,
+# and optional RADIUS attributes.
+
+# VPN user — standard access
+alice   Cleartext-Password := "strongpassword"
+        Service-Type = Framed-User,
+        Reply-Message = "Welcome to the VPN, %{User-Name}"
+
+# Another VPN user
+bob     Cleartext-Password := "anotherpassword"
+        Service-Type = Framed-User
+
+# Example: TR-069 CPE device (for GenieACS integration)
+# ONT-ZTE-F660-001    Cleartext-Password := "devicepassword"
+#                     Service-Type = Outbound-User
+
+# Example: Allow devices from VPN subnet with shared secret
+# DEFAULT Calling-Station-Id =~ "^10\.99\.0\..*"
+#         Cleartext-Password := "cpe-shared-secret"
+#         Service-Type = Outbound-User
+
+# Default policy: reject all users not explicitly listed above.
+# Remove or comment this out if you want to use a different default policy.
+DEFAULT Auth-Type := Reject
+        Reply-Message = "Access denied — user not found"
