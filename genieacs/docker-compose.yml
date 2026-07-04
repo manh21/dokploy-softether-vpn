@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  ### MongoDB — GenieACS database ###
+  mongo:
+    image: mongo:8.0
+    container_name: mongo-genieacs
+    restart: unless-stopped
+    environment:
+      MONGO_DATA_DIR: /data/db
+      MONGO_LOG_DIR: /var/log/mongodb
+    volumes:
+      - mongo_db:/data/db
+      - mongo_configdb:/data/configdb
+    expose:
+      - "27017"
+    networks:
+      - shared-vpn
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  ### GenieACS core — all 4 services (CWMP, NBI, FS, UI) in one container ###
+  genieacs:
+    depends_on:
+      mongo:
+        condition: service_healthy
+    image: drumsergio/genieacs:1.2.16.0
+    container_name: genieacs
+    restart: unless-stopped
+    environment:
+      GENIEACS_MONGODB_CONNECTION_URL: mongodb://mongo/genieacs?authSource=admin
+      GENIEACS_UI_JWT_SECRET: changeme
+      GENIEACS_CWMP_ACCESS_LOG_FILE: /var/log/genieacs/genieacs-cwmp-access.log
+      GENIEACS_NBI_ACCESS_LOG_FILE: /var/log/genieacs/genieacs-nbi-access.log
+      GENIEACS_FS_ACCESS_LOG_FILE: /var/log/genieacs/genieacs-fs-access.log
+      GENIEACS_UI_ACCESS_LOG_FILE: /var/log/genieacs/genieacs-ui-access.log
+      GENIEACS_DEBUG_FILE: /var/log/genieacs/genieacs-debug.yaml
+      GENIEACS_EXT_DIR: /opt/genieacs/ext
+    ports:
+      - "7547:7547"   # CWMP — TR-069 device connections
+      - "7557:7557"   # NBI  — REST API
+      - "7567:7567"   # FS   — File server
+      - "3000:3000"   # UI   — Web interface
+    networks:
+      - shared-vpn
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ### GenieACS Panel API — web-based ONT/CPE management UI ###
+  genieacs-panel:
+    depends_on:
+      genieacs:
+        condition: service_healthy
+    image: solusidigitalnet/genieacspanelapi:latest
+    container_name: genieacs-panel
+    restart: unless-stopped
+    ports:
+      - "1997:1997"
+    environment:
+      JWT_SECRET: changeme
+      JWT_EXPIRES_IN: 1h
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      add_wan: "yes"
+      NODE_ENV: production
+      # Point to the GenieACS NBI (same Docker network)
+      GENIEACS_NBI_URL: http://genieacs:7557
+    networks:
+      - shared-vpn
+
+volumes:
+  mongo_db:
+  mongo_configdb:
+
+networks:
+  shared-vpn:
+    external: true
