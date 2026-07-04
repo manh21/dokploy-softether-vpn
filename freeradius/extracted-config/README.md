@@ -5,17 +5,31 @@ alongside SoftEtherVPN on `prid-relay` (Debian).
 
 ## What was customized vs default
 
+### Files in `sites-enabled/` and `mods-enabled/`
+
+All files are **symlinks** to `../sites-available/` or `../mods-available/` EXCEPT:
+
+| File | Type | Status |
+|------|------|--------|
+| `mods-enabled/sqlcounter` | **Regular file** (1319 bytes) | **Custom** — not a symlink, manually written |
+| `mods-enabled/sql` | Symlink (abs path) | Points to `mods-available/sql` which IS custom |
+| `sites-enabled/default` | Symlink | Points to `sites-available/default` which IS custom |
+| `sites-enabled/inner-tunnel` | Symlink | Points to stock default |
+| All other mods-enabled/* | Symlinks | Stock defaults |
+
+### Summary
+
 | File | Status | What changed |
 |------|--------|-------------|
 | `dictionary` | **Custom** | Added `Max-Data`, `Data-Remaining`, `Data-Quota` (integer64), `FUP-Rate` (string) |
 | `clients.conf` | **Custom** | Added `overlay` client for VPN subnet `10.9.0.0/24` |
 | `mods-available/sql` | **Custom** | PostgreSQL dialect, driver, and connection to remote DB |
-| `sites-available/default` | **Custom** | Fair Usage Policy block in `post-auth` — enforces data quota via SQL, sets `Mikrotik-Rate-Limit` and `Mikrotik-Address-List` |
-| `sites-enabled/inner-tunnel` | Default | Standard — `-sql` disabled in authorize |
+| `mods-enabled/sqlcounter` | **Custom** | Custom `accessperiod` and `uptimelimit` counters; `quotalimit` commented out |
+| `sites-available/default` | **Custom** | Fair Usage Policy block in `post-auth` |
+| `sites-available/inner-tunnel` | Default | Stock — `-sql` disabled |
 | `radiusd.conf` | Default | No changes |
-| `users` (authorize) | Default | No custom users — all users managed via PostgreSQL |
-| `mods-config/sql/main/postgresql/queries.conf` | Default | Standard FreeRADIUS 3.2 queries |
-| `mods-config/sql/main/postgresql/schema.sql` | Default | Standard FreeRADIUS 3.2 schema |
+| `users` (authorize) | Default | No custom users — all managed via PostgreSQL |
+| All other mods/sites | Default | Symlinks to stock defaults |
 
 ### Data Quota / FUP mechanism
 

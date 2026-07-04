@@ -1,0 +1,36 @@
+sqlcounter accessperiod {
+    sql_module_instance = sql
+    dialect = "postgresql"
+    counter_name = Max-Access-Period-Time
+    check_name = Access-Period
+    key = User-Name
+    reset = never
+    query = "SELECT EXTRACT(EPOCH FROM NOW())::bigint - EXTRACT(EPOCH FROM MIN(AcctStartTime))::bigint FROM radacct WHERE UserName='%{${key}}'"
+}
+
+#sqlcounter quotalimit {
+#    sql_module_instance = sql
+#    dialect = "postgresql"
+#    counter_name = Max-Volume
+#    check_name   = Max-Data
+#    #  Carry the remaining bytes to a 64-bit scratch attr (NOT directly to
+#    #  Mikrotik-Total-Limit, which is 32-bit and would wrap above 4 GB).
+#    reply_name   = Data-Remaining
+#    key          = User-Name
+#    reset        = monthly
+#    #  Count only THIS period's traffic (AcctStartTime >= start of period).
+#    query = "SELECT COALESCE(SUM(acctinputoctets) + SUM(acctoutputoctets), 0) \
+#             FROM radacct \
+#             WHERE UserName='%{${key}}' \
+#             AND AcctStartTime >= TO_TIMESTAMP(%{${reset_time}})"
+#}
+
+sqlcounter uptimelimit {
+    sql_module_instance = sql
+    dialect = "postgresql"
+    counter_name = Max-All-Session-Time
+    check_name = Max-All-Session
+    key = User-Name
+    reset = never
+    query = "SELECT COALESCE(SUM(AcctSessionTime), 0) FROM radacct WHERE UserName='%{${key}}'"
+}
